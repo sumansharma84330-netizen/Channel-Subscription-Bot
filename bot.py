@@ -127,7 +127,6 @@ def finalize_channel(message, ch_id, ch_name):
     except:
         bot.send_message(ADMIN_ID, "❌ Invalid format. Please use 'Min:Price, Min:Price'. Use /add to retry.")
 # --- USER: PAYMENT FLOW ---
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
     try:
@@ -145,6 +144,8 @@ def admin_notify(call):
         
     except Exception as e:
         print(f"Error in admin_notify: {e}")
+        bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
+
         bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
 
 
