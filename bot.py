@@ -153,6 +153,23 @@ def admin_notify(call):
         price = ch_data['plans'][str(int(mins))]
         
         markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"approve_{user.id}_{ch_id}_{mins}"),
+                   InlineKeyboardButton("❌ Reject", callback_data=f"reject_{user.id}"))
+        
+        bot.send_message(ADMIN_ID, f"🔔 *New Subscription Request!*\n\nUser: {user.first_name} (@{user.username})\nChannel: {ch_data['name']}\nPlan: {mins} Min\nPrice: ₹{price}", parse_mode="Markdown", reply_markup=markup)
+        bot.answer_callback_query(call.id, "Request sent to admin for approval.")
+        
+    except Exception as e:
+        print(f"Error in admin_notify: {e}")
+        bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
+def admin_notify(call):
+    try:
+        _, ch_id, mins = call.data.split('_')
+        user = call.from_user
+        ch_data = channels_col.find_one({"channel_id": int(ch_id)})
+        price = ch_data['plans'][str(int(mins))]
+        
+        markup = InlineKeyboardMarkup()
     
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"app_{user.id}_{ch_id}_{mins}"))
