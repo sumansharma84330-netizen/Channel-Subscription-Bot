@@ -146,10 +146,13 @@ def user_pays(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
 def admin_notify(call):
-    _, ch_id, mins = call.data.split('_')
-    user = call.from_user
-    ch_data = channels_col.find_one({"channel_id": int(ch_id)})
-    price = ch_data['plans'][mins]
+    try:
+        _, ch_id, mins = call.data.split('_')
+        user = call.from_user
+        ch_data = channels_col.find_one({"channel_id": int(ch_id)})
+        price = ch_data['plans'][str(int(mins))]
+        
+        markup = InlineKeyboardMarkup()
     
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"app_{user.id}_{ch_id}_{mins}"))
