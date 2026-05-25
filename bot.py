@@ -146,8 +146,6 @@ def admin_notify(call):
         print(f"Error in admin_notify: {e}")
         bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
 
-        bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
-
 
     bot.send_photo(call.message.chat.id, qr_url, 
                    caption=f"Plan: {mins} Minutes\nPrice: ₹{price}\nUPI ID: `{UPI_ID}`\n\nPlease complete the payment and click 'I Have Paid'.", 
