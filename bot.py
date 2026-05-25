@@ -110,7 +110,9 @@ def finalize_channel(message, ch_id, ch_name):
         plans_dict = {}
         for p in raw_plans:
             t, pr = p.strip().split(':')
-            plans_dict[t] = pr
+            plans_dict[str(int(t))] = float(pr)for p in raw_plans:
+            t, pr = p.strip().split(':')
+            plans_dict[str(int(t))] = float(pr)
         
         channels_col.update_one({"channel_id": ch_id}, {"$set": {"name": ch_name, "plans": plans_dict, "admin_id": ADMIN_ID}}, upsert=True)
         bot_username = bot.get_me().username
