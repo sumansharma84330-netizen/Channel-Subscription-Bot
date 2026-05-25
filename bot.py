@@ -113,13 +113,19 @@ def finalize_channel(message, ch_id, ch_name):
             plans_dict[str(int(t))] = float(pr)for p in raw_plans:
             t, pr = p.strip().split(':')
             plans_dict[str(int(t))] = float(pr)
-        
+        try:
+        raw_plans = message.text.split(',')
+        plans_dict = {}
+        for p in raw_plans:
+            t, pr = p.strip().split(':')
+            plans_dict[str(int(t))] = float(pr)
+
         channels_col.update_one({"channel_id": ch_id}, {"$set": {"name": ch_name, "plans": plans_dict, "admin_id": ADMIN_ID}}, upsert=True)
         bot_username = bot.get_me().username
-        bot.send_message(ADMIN_ID, f"✅ Setup Successful!\n\nInvite Link for users:\n`https://t.me/{bot_username}?start={ch_id}`", parse_mode="Markdown")
-    except:
-        bot.send_message(ADMIN_ID, "❌ Invalid format. Please use `Min:Price, Min:Price`. Use /add to retry.")
+        bot.send_message(ADMIN_ID, f" 👥 Setup Successful!\n\nInvite Link for users:\n'https://t.me/{bot_username}?start={ch_id}'", parse_mode="Markdown")
 
+    except:
+        bot.send_message(ADMIN_ID, "❌ Invalid format. Please use 'Min:Price, Min:Price'. Use /add to retry.")
 # --- USER: PAYMENT FLOW ---
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('select_'))
