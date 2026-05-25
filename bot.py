@@ -128,18 +128,26 @@ def finalize_channel(message, ch_id, ch_name):
         bot.send_message(ADMIN_ID, "❌ Invalid format. Please use 'Min:Price, Min:Price'. Use /add to retry.")
 # --- USER: PAYMENT FLOW ---
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('select_'))
-def user_pays(call):
-    _, ch_id, mins = call.data.split('_')
-    ch_data = channels_col.find_one({"channel_id": int(ch_id)})
-    price = ch_data['plans'][mins]
-    
-    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa={UPI_ID}%26am={price}%26cu=INR"
-    
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("✅ I Have Paid", callback_data=f"paid_{ch_id}_{mins}"))
-    markup.add(InlineKeyboardButton("📞 Contact Admin", url=f"https://t.me/{CONTACT_USERNAME}"))
-    
+@bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
+def admin_notify(call):
+    try:
+        _, ch_id, mins = call.data.split('_')
+        user = call.from_user
+        ch_data = channels_col.find_one({"channel_id": int(ch_id)})
+        price = ch_data['plans'][str(int(mins))]
+        
+        markup = InlineKeyboardMarkup()
+        markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"approve_{user.id}_{ch_id}_{mins}"),
+                   InlineKeyboardButton("❌ Reject", callback_data=f"reject_{user.id}"))
+        
+        bot.send_message(ADMIN_ID, f"🔔 *New Subscription Request!*\n\nUser: {user.first_name} (@{user.username})\nChannel: {ch_data['name']}\nPlan: {mins} Min\nPrice: ₹{price}", parse_mode="Markdown", reply_markup=markup)
+        bot.answer_callback_query(call.id, "Request sent to admin for approval.")
+        
+    except Exception as e:
+        print(f"Error in admin_notify: {e}")
+        bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
+
+
     bot.send_photo(call.message.chat.id, qr_url, 
                    caption=f"Plan: {mins} Minutes\nPrice: ₹{price}\nUPI ID: `{UPI_ID}`\n\nPlease complete the payment and click 'I Have Paid'.", 
                    reply_markup=markup, parse_mode="Markdown")
