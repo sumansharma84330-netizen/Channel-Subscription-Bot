@@ -108,21 +108,17 @@ def finalize_channel(message, ch_id, ch_name):
     try:
         raw_plans = message.text.split(',')
         plans_dict = {}
-        for p in raw_plans:
-            t, pr = p.strip().split(':')
-            plans_dict[str(int(t))] = float(pr)for p in raw_plans:
-            t, pr = p.strip().split(':')
-            plans_dict[str(int(t))] = float(pr)
-        try:
-        raw_plans = message.text.split(',')
-        plans_dict = {}
-        for p in raw_plans:
+      for p in raw_plans:
             t, pr = p.strip().split(':')
             plans_dict[str(int(t))] = float(pr)
 
         channels_col.update_one({"channel_id": ch_id}, {"$set": {"name": ch_name, "plans": plans_dict, "admin_id": ADMIN_ID}}, upsert=True)
         bot_username = bot.get_me().username
-        bot.send_message(ADMIN_ID, f" 👥 Setup Successful!\n\nInvite Link for users:\n'https://t.me/{bot_username}?start={ch_id}'", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, f"👥 Setup Successful!\n\nInvite Link for users:\n'https://t.me/{bot_username}?start={ch_id}'", parse_mode="Markdown")
+
+    except Exception as e:
+        print(f"Error in finalize_channel: {e}")
+        bot.send_message(ADMIN_ID, "❌ Invalid format. Please use 'Min:Price, Min:Price'. Use /add to retry.")
 
     except:
         bot.send_message(ADMIN_ID, "❌ Invalid format. Please use 'Min:Price, Min:Price'. Use /add to retry.")
@@ -143,17 +139,7 @@ def admin_notify(call):
         bot.answer_callback_query(call.id, "Request sent to admin for approval.")
         
     except Exception as e:
-        print(f"Error in admin_notify: {e}")
-        bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
-
-
-    bot.send_photo(call.message.chat.id, qr_url, 
-                   caption=f"Plan: {mins} Minutes\nPrice: ₹{price}\nUPI ID: `{UPI_ID}`\n\nPlease complete the payment and click 'I Have Paid'.", 
-                   reply_markup=markup, parse_mode="Markdown")
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith('paid_'))
-def admin_notify(call):
-    try:
+       try:
         _, ch_id, mins = call.data.split('_')
         user = call.from_user
         ch_data = channels_col.find_one({"channel_id": int(ch_id)})
@@ -162,6 +148,13 @@ def admin_notify(call):
         markup = InlineKeyboardMarkup()
         markup.add(InlineKeyboardButton("✅ Approve", callback_data=f"approve_{user.id}_{ch_id}_{mins}"),
                    InlineKeyboardButton("❌ Reject", callback_data=f"reject_{user.id}"))
+        
+        bot.send_message(ADMIN_ID, f"🔔 *New Subscription Request!*\n\nUser: {user.first_name} (@{user.username})\nChannel: {ch_data['name']}\nPlan: {mins} Min\nPrice: ₹{price}", parse_mode="Markdown", reply_markup=markup)
+        bot.answer_callback_query(call.id, "Request sent to admin for approval.")
+        
+    except Exception as e:
+        print(f"Error in admin_notify: {e}")
+        bot.answer_callback_query(call.id, "⚠️ An error occurred processing your request.")
         try:
        _, ch_id, mins = call.data.split('_')
      user = call.from_user
